@@ -2,6 +2,9 @@
 
  * Drop support for Python 2. (Jelmer Vernooĳ)
 
+ * Don't send "deepen None" to server if graph walker
+   supports shallow. (Jelmer Vernooĳ, #747)
+
 0.19.15	2020-01-26
 
  * Properly handle files that are just executable for the

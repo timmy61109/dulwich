@@ -312,13 +312,16 @@ def _read_shallow_updates(proto):
 class GitClient(object):
     """Git smart server client."""
 
-    def __init__(self, thin_packs=True, report_activity=None, quiet=False):
+    def __init__(self, thin_packs=True, report_activity=None, quiet=False,
+                 include_tags=False):
         """Create a new GitClient instance.
 
         Args:
           thin_packs: Whether or not thin packs should be retrieved
           report_activity: Optional callback for reporting transport
             activity.
+          include_tags: send annotated tags when sending the objects they point
+            to
         """
         self._report_activity = report_activity
         self._report_status_parser = None
@@ -330,6 +333,8 @@ class GitClient(object):
             self._send_capabilities.add(CAPABILITY_QUIET)
         if not thin_packs:
             self._fetch_capabilities.remove(CAPABILITY_THIN_PACK)
+        if include_tags:
+            self._fetch_capabilities.add(CAPABILITY_INCLUDE_TAG)
 
     def get_url(self, path):
         """Retrieves full url to given path.
@@ -641,8 +646,9 @@ class GitClient(object):
                     "depth")
             for sha in graph_walker.shallow:
                 proto.write_pkt_line(COMMAND_SHALLOW + b' ' + sha + b'\n')
-            proto.write_pkt_line(COMMAND_DEEPEN + b' ' +
-                                 str(depth).encode('ascii') + b'\n')
+            if depth is not None:
+                proto.write_pkt_line(COMMAND_DEEPEN + b' ' +
+                                     str(depth).encode('ascii') + b'\n')
             proto.write_pkt_line(None)
             if can_read is not None:
                 (new_shallow, new_unshallow) = _read_shallow_updates(proto)
@@ -1599,9 +1605,14 @@ class HttpGitClient(GitClient):
         read = BytesIO(resp.data).read
 
         resp.content_type = resp.getheader("Content-Type")
-        resp_url = resp.geturl()
-        resp.redirect_location = resp_url if resp_url != url else ''
-
+        # Check if geturl() is available (urllib3 version >= 1.23)
+        try:
+            resp_url = resp.geturl()
+        except AttributeError:
+            # get_redirect_location() is available for urllib3 >= 1.1
+            resp.redirect_location = resp.get_redirect_location()
+        else:
+            resp.redirect_location = resp_url if resp_url != url else ''
         return resp, read
 
     def _discover_references(self, service, base_url):
