@@ -64,3 +64,9 @@ jobs:
     - name: Upload coverage details
       run: |
         codecov
+    - name: Style checks pylint
+      run: |
+        python -m pylint dulwich examples
+    - name: Test unittest
+      run: |
+        python -m unittest dulwich.tests.test_suite
