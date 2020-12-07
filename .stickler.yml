@@ -24,3 +24,6 @@ linters:
     py3k:
       ignore: 'W1618,W1655'
       ignore-patterns: 'generated/.*'
+
+fixers:
+  enable: true
