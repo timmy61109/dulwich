@@ -67,8 +67,11 @@ class CreateRepositoryTests(TestCase):
 
     def _check_repo_contents(self, repo, expect_bare):
         self.assertEqual(expect_bare, repo.bare)
-        self.assertFileContentsEqual(b"Unnamed repository", repo, "description")
-        self.assertFileContentsEqual(b"", repo, os.path.join("info", "exclude"))
+        self.assertFileContentsEqual(
+            b"Unnamed repository", repo, "description")
+        self.assertFileContentsEqual(
+            b"", repo, os.path.join(
+                "info", "exclude"))
         self.assertFileContentsEqual(None, repo, "nonexistent file")
         barestr = b"bare = " + str(expect_bare).lower().encode("ascii")
         with repo.get_named_file("config") as f:
@@ -260,7 +263,8 @@ class RepositoryRootTests(TestCase):
             r.get_parents(b"a90fa2d900a17e99b433217e988c4eb4a2e9a097"),
         )
         r.update_shallow([b"a90fa2d900a17e99b433217e988c4eb4a2e9a097"], None)
-        self.assertEqual([], r.get_parents(b"a90fa2d900a17e99b433217e988c4eb4a2e9a097"))
+        self.assertEqual([], r.get_parents(
+            b"a90fa2d900a17e99b433217e988c4eb4a2e9a097"))
 
     def test_get_walker(self):
         r = self.open_repo("a.git")
@@ -382,7 +386,9 @@ class RepositoryRootTests(TestCase):
             encoded_path = r.path
             if not isinstance(encoded_path, bytes):
                 encoded_path = os.fsencode(encoded_path)
-            self.assertEqual(encoded_path, c.get((b"remote", b"origin"), b"url"))
+            self.assertEqual(
+                encoded_path, c.get(
+                    (b"remote", b"origin"), b"url"))
             self.assertEqual(
                 b"+refs/heads/*:refs/remotes/origin/*",
                 c.get((b"remote", b"origin"), b"fetch"),
@@ -393,7 +399,12 @@ class RepositoryRootTests(TestCase):
         self.addCleanup(shutil.rmtree, temp_dir)
         repo_dir = os.path.join(os.path.dirname(__file__), "data", "repos")
         dest_dir = os.path.join(temp_dir, "a.git")
-        shutil.copytree(os.path.join(repo_dir, "a.git"), dest_dir, symlinks=True)
+        shutil.copytree(
+            os.path.join(
+                repo_dir,
+                "a.git"),
+            dest_dir,
+            symlinks=True)
         r = Repo(dest_dir)
         del r.refs[b"refs/heads/master"]
         del r.refs[b"HEAD"]
@@ -701,12 +712,13 @@ exit 1
             "non-zero status 1",
         )
         for w in warnings_list:
-            if type(w) == type(expected_warning) and w.args == expected_warning.args:
+            if isinstance(w, type(expected_warning)
+                          ) and w.args == expected_warning.args:
                 break
         else:
             raise AssertionError(
-                "Expected warning %r not in %r" % (expected_warning, warnings_list)
-            )
+                "Expected warning %r not in %r" %
+                (expected_warning, warnings_list))
         self.assertEqual([commit_sha], r[commit_sha2].parents)
 
     def test_as_dict(self):
@@ -814,7 +826,8 @@ class BuildRepoRootTests(TestCase):
     def test_update_shallow(self):
         self._repo.update_shallow(None, None)  # no op
         self.assertEqual(set(), self._repo.get_shallow())
-        self._repo.update_shallow([b"a90fa2d900a17e99b433217e988c4eb4a2e9a097"], None)
+        self._repo.update_shallow(
+            [b"a90fa2d900a17e99b433217e988c4eb4a2e9a097"], None)
         self.assertEqual(
             {b"a90fa2d900a17e99b433217e988c4eb4a2e9a097"},
             self._repo.get_shallow(),
@@ -1005,7 +1018,9 @@ class BuildRepoRootTests(TestCase):
         c.write_to_path()
         commit_sha = r.do_commit(b"message")
         self.assertEqual(b"Jelmer <jelmer@apache.org>", r[commit_sha].author)
-        self.assertEqual(b"Jelmer <jelmer@apache.org>", r[commit_sha].committer)
+        self.assertEqual(
+            b"Jelmer <jelmer@apache.org>",
+            r[commit_sha].committer)
 
     def test_commit_config_identity_strips_than(self):
         # commit falls back to the users' identity if it wasn't specified,
@@ -1017,7 +1032,9 @@ class BuildRepoRootTests(TestCase):
         c.write_to_path()
         commit_sha = r.do_commit(b"message")
         self.assertEqual(b"Jelmer <jelmer@apache.org>", r[commit_sha].author)
-        self.assertEqual(b"Jelmer <jelmer@apache.org>", r[commit_sha].committer)
+        self.assertEqual(
+            b"Jelmer <jelmer@apache.org>",
+            r[commit_sha].committer)
 
     def test_commit_config_identity_in_memoryrepo(self):
         # commit falls back to the users' identity if it wasn't specified
@@ -1028,7 +1045,9 @@ class BuildRepoRootTests(TestCase):
 
         commit_sha = r.do_commit(b"message", tree=objects.Tree().id)
         self.assertEqual(b"Jelmer <jelmer@apache.org>", r[commit_sha].author)
-        self.assertEqual(b"Jelmer <jelmer@apache.org>", r[commit_sha].committer)
+        self.assertEqual(
+            b"Jelmer <jelmer@apache.org>",
+            r[commit_sha].committer)
 
     def overrideEnv(self, name, value):
         def restore():
@@ -1264,7 +1283,10 @@ class CheckUserIdentityTests(TestCase):
         check_user_identity(b"Me <me@example.com>")
 
     def test_invalid(self):
-        self.assertRaises(InvalidUserIdentity, check_user_identity, b"No Email")
+        self.assertRaises(
+            InvalidUserIdentity,
+            check_user_identity,
+            b"No Email")
         self.assertRaises(
             InvalidUserIdentity, check_user_identity, b"Fullname <missing"
         )
